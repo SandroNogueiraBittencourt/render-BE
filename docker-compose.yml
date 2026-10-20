@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: senac-db
+    environment:
+      POSTGRES_DB: senac
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: 
+      - "127.0.0.1:5434:5432"
+    volumes: 
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+  api:
+    build: .
+    container_name: senac-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: senac
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PORT: 8080
+    ports:
+      - "8080:8080"
+volumes:
+  pgdata: 
